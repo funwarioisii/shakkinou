@@ -28,6 +28,21 @@ const writeHistory = ((fromName: string, toName: string, price: number) => {
     .catch((err) => console.error(err));
 });
 
+const writeHistoryWithDesc = ((fromName: string, toName: string, price: number, description: string) =>{
+  const now = Date.now()
+  database
+  .ref('history/' + now)
+  .set({
+    time: now,
+    fromName: fromName,
+    toName: toName,
+    price : price,
+    description: description
+  })
+  .then(() => console.log("Write success"))
+  .catch((err) => console.error(err));
+})
+
 export const helloWorld = functions.https.onRequest((req, res) => {
   const messages = req.body.text.split(" ")
   if (messages[0] === "history") {
@@ -51,14 +66,28 @@ export const helloWorld = functions.https.onRequest((req, res) => {
       }),
       ((err) => console.error(err)))
 
-  } else if (messages.length !== 3){
+  } else if (messages.length !== 3 && messages.length !== 4){
     res.send("augument error, [from: str] [to: str] [price: int]")
-  } else {
+  } else if (messages.length === 3){
     const fromName = messages[0]
     const toName = messages[1]
     const price = messages[2]
 
     writeHistory(fromName, toName, price)
-    res.send("recorded!");
+    res.send({
+      response_type: "in_channel",
+      text: "recorded!"
+    })
+  } else if (messages.length === 4) {
+    const fromName = messages[0]
+    const toName = messages[1]
+    const price = messages[2]
+    const description = messages[3]
+
+    writeHistoryWithDesc(fromName, toName, price, description)
+    res.send({
+      response_type: "in_channel",
+      text: "recorded!"
+    })
   }
 });
