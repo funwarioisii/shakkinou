@@ -28,12 +28,6 @@ const writeHistory = (
       .catch((err) => console.error(err));
 });
 
-/**
- * @param fromName 誰から
- * @param toName 誰へ
- * @param price いくら
- * @param description 内訳
- */
 const writeHistoryWithDesc = (
   (fromName: string, toName: string, price: number, description: string) => {
     const now = Date.now()
@@ -50,33 +44,30 @@ const writeHistoryWithDesc = (
     .catch((err) => console.error(err));
 })
 
-const readHistory = (): string =>  {
-  let responseBody: string = ""
-  database.ref('history')
-    .on('value', ((snapshot) => {
-      const result: object = snapshot.val()
-      for (const key in result) {
-        responseBody += `${key}\n`
-        const fromName: string = result[key].fromName
-        const toName: string = result[key].toName
-        const price: number = result[key].price
-        responseBody += `${fromName}から${toName}に${price}円渡してる\n`
-      }
-  }),
-  ((err) => {
-    console.error(err)
-    return `何らかのエラーが発生したかも $err`
-  }))
-  return responseBody
-}
 
 export const helloWorld = functions.https.onRequest((req, res) => {
   const messages = req.body.text.split(" ")
   if (messages[0] === "history") {
-    res.send({
-      response_type: "in_channel",
-      text: readHistory()
-    })
+    database.ref('history')
+      .on('value', ((snapshot) => {
+        const result = snapshot.val()
+        let responseBody = ""
+        for (const key in result) {
+          responseBody += `${key}\n`
+          const fromName = result[key].fromName
+          const toName = result[key].toName
+          const price = result[key].price
+          responseBody += `${fromName}から${toName}に${price}円渡してる\n`
+        }
+        // res.send(responseBody)
+
+        res.send({
+          response_type: "in_channel",
+          text: responseBody
+        })
+      }),
+      ((err) => console.error(err)))
+
   } else if (messages.length !== 3 && messages.length !== 4){
     res.send("augument error, [from: str] [to: str] [price: int]")
   } else if (messages.length === 3){
