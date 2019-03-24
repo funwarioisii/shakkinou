@@ -47,6 +47,7 @@ const writeHistoryWithDesc = (
 
 export const helloWorld = functions.https.onRequest((req, res) => {
   const messages = req.body.text.split(" ")
+  console.log(messages[0])
   if (messages[0] === "history") {
     database.ref('history')
       .on('value', ((snapshot) => {
@@ -68,17 +69,10 @@ export const helloWorld = functions.https.onRequest((req, res) => {
       }),
       ((err) => console.error(err)))
 
-  } else if(messages[0] == "help"){
+  } else if(messages[0] === "help"){
     res.send({
       response_type: "in_channel",
-      responseBody: "\
-      使い方: \
-      /shakkin [誰から] [誰へ] [いくら] [内訳]\
-      他のコマンド: \
-        help: この文字列 \
-        history: 今までの一覧 \
-        sum: 総和（未実装）\
-      "
+      text: "[使い方] \n/shakkin [誰から] [誰へ] [いくら] [内訳]\n[他のコマンド]: \n\thelp: この文字列\n\thistory: 今までの一覧\n\tsum: 総和（未実装"
     })
   } else if (messages.length !== 3 && messages.length !== 4){
     res.send("augument error, [from: str] [to: str] [price: int]")
