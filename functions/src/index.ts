@@ -72,7 +72,7 @@ export const helloWorld = functions.https.onRequest((req, res) => {
   } else if(messages[0] === "help"){
     res.send({
       response_type: "in_channel",
-      text: "[使い方] \n/shakkin [誰から] [誰へ] [いくら] [内訳]\n[他のコマンド]: \n\thelp: この文字列\n\thistory: 今までの一覧\n\tsum: 総和（未実装"
+      text: "[使い方] \n\t/shakkin [誰から] [誰へ] [いくら] [内訳]\n[他のコマンド]: \n\thelp: この文字列\n\thistory: 今までの一覧\n\tsum: 総和（未実装"
     })
   } else if (messages.length !== 3 && messages.length !== 4){
     res.send("augument error, [from: str] [to: str] [price: int]")
