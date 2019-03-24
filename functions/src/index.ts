@@ -68,6 +68,18 @@ export const helloWorld = functions.https.onRequest((req, res) => {
       }),
       ((err) => console.error(err)))
 
+  } else if(messages[0] == "help"){
+    res.send({
+      response_type: "in_channel",
+      responseBody: "\
+      使い方: \
+      /shakkin [誰から] [誰へ] [いくら] [内訳]\
+      他のコマンド: \
+        help: この文字列 \
+        history: 今までの一覧 \
+        sum: 総和（未実装）\
+      "
+    })
   } else if (messages.length !== 3 && messages.length !== 4){
     res.send("augument error, [from: str] [to: str] [price: int]")
   } else if (messages.length === 3){
