@@ -47,20 +47,38 @@ const writeHistoryWithDesc = (
 
 export const helloWorld = functions.https.onRequest((req, res) => {
   const messages = req.body.text.split(" ")
-  console.log(messages[0])
   if (messages[0] === "history") {
     database.ref('history')
       .on('value', ((snapshot) => {
-        const result = snapshot.val()
+        const result = ((mess) => {
+          const _result = snapshot.val()
+          if (mess.length >=2 && Number(mess[1])) {
+            const keys = Object.keys(_result).slice(Object.keys(_result).length - Number(messages[1]))
+            const _res = {}
+            for (const key of keys) {
+              _res[key] = _result[key]
+            }
+            return _res
+          } else {
+            return _result
+          }
+        })(messages)
         let responseBody = ""
         for (const key in result) {
-          responseBody += `${key}\n`
+          responseBody += `[${key}] `
           const fromName = result[key].fromName
           const toName = result[key].toName
           const price = result[key].price
-          responseBody += `${fromName}から${toName}に${price}円渡してる\n`
+          const description = result[key].description
+          const breakdown = ((x) => {
+            if (description === undefined) {
+              return ""
+            } else {
+              return `（内訳：${description}）`
+            }
+          })(description)
+          responseBody += `${fromName}から${toName}に${price}円渡してる．${breakdown}\n`
         }
-        // res.send(responseBody)
 
         res.send({
           response_type: "in_channel",
