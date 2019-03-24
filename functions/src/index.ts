@@ -65,7 +65,7 @@ export const helloWorld = functions.https.onRequest((req, res) => {
               return `（内訳：${description}）`
             }
           })(description)
-          responseBody += `${fromName}から${toName}に${price}円渡してる．\n`
+          responseBody += `${fromName}から${toName}に${price}円渡してる．${breakdown}\n`
         }
 
         res.send({
