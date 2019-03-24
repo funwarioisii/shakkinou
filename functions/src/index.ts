@@ -50,7 +50,19 @@ export const helloWorld = functions.https.onRequest((req, res) => {
   if (messages[0] === "history") {
     database.ref('history')
       .on('value', ((snapshot) => {
-        const result = snapshot.val()
+        const result = ((mess) => {
+          const _result = snapshot.val()
+          if (mess.length >=2 && Number(mess[1])) {
+            const keys = Object.keys(_result).slice(Object.keys(_result).length - Number(messages[1]))
+            const _res = {}
+            for (const key of keys) {
+              _res[key] = _result[key]
+            }
+            return _res
+          } else {
+            return _result
+          }
+        })(messages)
         let responseBody = ""
         for (const key in result) {
           responseBody += `[${key}] `
