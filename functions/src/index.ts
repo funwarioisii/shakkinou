@@ -74,6 +74,29 @@ export const helloWorld = functions.https.onRequest((req, res) => {
       response_type: "in_channel",
       text: "[使い方] \n\t/shakkin [誰から] [誰へ] [いくら] [内訳]\n[他のコマンド]: \n\thelp: この文字列\n\thistory: 今までの一覧\n\tsum: 総和（未実装"
     })
+  } else if(messages[0] === "sum") {
+
+    database.ref('history')
+      .on('value', ((snapshot) => {
+        const result = snapshot.val()
+        let accumulatePrice = {}
+
+        Object.keys(result).forEach(key => accumulatePrice[result[key].fromName] = 0)
+
+        Object.keys(result).forEach(key => accumulatePrice[result[key].fromName] += Number(result[key].price))
+
+        let responseBody = ""
+        Object.keys(accumulatePrice).forEach((element) => {
+          responseBody += `${element}は${accumulatePrice[element]}円貸してる \n`
+        })
+
+        res.send({
+          response_type: "in_channel",
+          text: responseBody
+        })
+      }),
+      ((err) => console.error(err)))
+
   } else if (messages.length !== 3 && messages.length !== 4){
     res.send("augument error, [from: str] [to: str] [price: int]")
   } else if (messages.length === 3){
