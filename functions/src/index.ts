@@ -58,7 +58,7 @@ const nameConverter = (name: string) => {
   } else {
     return name
   }
-}
+};
 
 
 export const helloWorld = functions.https.onRequest((req, res) => {
@@ -155,4 +155,17 @@ export const helloWorld = functions.https.onRequest((req, res) => {
       text: "recorded!"
     })
   }
+});
+
+export const saveShakkinInfo = functions.https.onRequest((req, res) => {
+  const fromName: string = req.body.queryResult.parameters.srcPerson;
+  const toName: string = req.body.queryResult.parameters.dstPerson;
+  const price: number = req.body.queryResult.parameters.price;
+  const description: string = req.body.queryResult.parameters.reason;
+  if (fromName === null || fromName === "") {
+    res.status(400).send("something input error")
+  }
+
+  writeHistoryWithDesc(fromName, toName, price, description);
+  res.status(201).send("done")
 });
