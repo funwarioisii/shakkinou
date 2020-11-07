@@ -1,8 +1,11 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+const IncomingWebhook = require('@slack/client').IncomingWebhook;
+const webhook = new IncomingWebhook(functions.config().shakkinou.incoming_slack_url);
 
 admin.initializeApp(functions.config().firebase);
 const database = admin.database();
+
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -167,5 +170,11 @@ export const saveShakkinInfo = functions.https.onRequest((req, res) => {
   }
 
   writeHistoryWithDesc(fromName, toName, price, description);
+  (async () => {
+    await webhook.send({
+      text: `${fromName}から${toName}に${price}円貸した記録が登録されました`,
+    })})()
+    .then(()=> res.status(201).send("done"))
+    .catch((e) => res.status(500).send(e));
   res.status(201).send("done")
 });

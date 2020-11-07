@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "firebase-tools": "^6.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.5"
   }
 }
