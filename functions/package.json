@@ -17,6 +17,7 @@
     "@slack/client": "^5.0.2",
     "@slack/events-api": "^2.3.4",
     "@slack/web-api": "^5.13.0",
+    "dayjs": "^1.9.6",
     "firebase-admin": "^9.3.0",
     "firebase-functions": "^2.1.0"
   },

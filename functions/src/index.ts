@@ -1,5 +1,8 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import dayjs = require('dayjs');
+
+
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
 const webhook = new IncomingWebhook(functions.config().shakkinou.incoming_slack_url);
 
@@ -63,6 +66,36 @@ const nameConverter = (name: string) => {
   }
 };
 
+const fetchHistory = async(historySize: number) => {
+  const snapshot = await database.ref('history').once('value')
+
+  let result = {}
+  const _result = snapshot.val()
+  const keys = Object.keys(_result).slice(Object.keys(_result).length - historySize);  // messages[1]分だけ過去ログの読み込み
+  for (const key of keys) {
+    result[key] = _result[key]
+  }
+
+  let responseBody = "";
+  for (const key in result) {
+    const date = new Date(Number(key))
+    responseBody += `[${date.getFullYear()}/${date.getMonth()}/${date.getDate()} ${date.getTime()}] `;
+    const fromName = nameConverter(result[key].fromName);
+    const toName = nameConverter(result[key].toName);
+    const price = result[key].price;
+    const description = result[key].description;
+    const breakdown = ((x) => {
+      if (x === undefined) {
+        return ""
+      } else {
+        return `（内訳：${x}）`
+      }
+    })(description);
+    responseBody += `${fromName}から${toName}に${price}円渡してる．${breakdown}\n`
+  }
+  return responseBody
+}
+
 
 export const helloWorld = functions.https.onRequest((req, res) => {
   const messages = req.body.text.split(" ");
@@ -72,7 +105,7 @@ export const helloWorld = functions.https.onRequest((req, res) => {
         const result = ((mess) => {
           const _result = snapshot.val();
           if (mess.length >=2 && Number(mess[1])) {
-            const keys = Object.keys(_result).slice(Object.keys(_result).length - Number(messages[1]));
+            const keys = Object.keys(_result).slice(Object.keys(_result).length - Number(mess[1]));
             const _res = {};
             for (const key of keys) {
               _res[key] = _result[key]
@@ -84,16 +117,17 @@ export const helloWorld = functions.https.onRequest((req, res) => {
         })(messages);
         let responseBody = "";
         for (const key in result) {
-          responseBody += `[${key}] `;
+          const date = dayjs(Number(key))
+          responseBody += `[${date.format("YYYY-MM-DD ddd")}] `;
           const fromName = nameConverter(result[key].fromName);
           const toName = nameConverter(result[key].toName);
           const price = result[key].price;
           const description = result[key].description;
           const breakdown = ((x) => {
-            if (description === undefined) {
+            if (x === undefined) {
               return ""
             } else {
-              return `（内訳：${description}）`
+              return `（内訳：${x}）`
             }
           })(description);
           responseBody += `${fromName}から${toName}に${price}円渡してる．${breakdown}\n`
@@ -178,3 +212,15 @@ export const saveShakkinInfo = functions.https.onRequest((req, res) => {
     .catch((e) => res.status(500).send(e));
   res.status(201).send("done")
 });
+
+
+export const getShakkinHistory = functions.https.onRequest((req, res) => {
+  const historySize = Number(req.body.queryResult.parameters.historySize);
+  if (historySize ===undefined) {
+    res.status(400).send("something input error")
+  }
+
+  fetchHistory(historySize)
+    .then((message) => res.status(201).send({ message }))
+    .catch((e) => res.status(500).send(`${e}: ${req.body.queryResult.parameters}`))
+})
