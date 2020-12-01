@@ -69,7 +69,7 @@ const nameConverter = (name: string) => {
 const fetchHistory = async(historySize: number) => {
   const snapshot = await database.ref('history').once('value')
 
-  let result = {}
+  const result = {}
   const _result = snapshot.val()
   const keys = Object.keys(_result).slice(Object.keys(_result).length - historySize);  // messages[1]分だけ過去ログの読み込み
   for (const key of keys) {
@@ -78,11 +78,11 @@ const fetchHistory = async(historySize: number) => {
 
   let responseBody = "";
   for (const key in result) {
-    const date = new Date(Number(key))
-    responseBody += `[${date.getFullYear()}/${date.getMonth()}/${date.getDate()} ${date.getTime()}] `;
+    const date = dayjs(Number(key))
+    responseBody += `[${date.format("YYYY-MM-DD ddd")}] `;
     const fromName = nameConverter(result[key].fromName);
     const toName = nameConverter(result[key].toName);
-    const price = result[key].price;
+    const price = Number(result[key].price).toLocaleString();
     const description = result[key].description;
     const breakdown = ((x) => {
       if (x === undefined) {
@@ -100,46 +100,18 @@ const fetchHistory = async(historySize: number) => {
 export const helloWorld = functions.https.onRequest((req, res) => {
   const messages = req.body.text.split(" ");
   if (messages[0] === "history") {
-    database.ref('history')
-      .on('value', ((snapshot) => {
-        const result = ((mess) => {
-          const _result = snapshot.val();
-          if (mess.length >=2 && Number(mess[1])) {
-            const keys = Object.keys(_result).slice(Object.keys(_result).length - Number(mess[1]));
-            const _res = {};
-            for (const key of keys) {
-              _res[key] = _result[key]
-            }
-            return _res
-          } else {
-            return _result
-          }
-        })(messages);
-        let responseBody = "";
-        for (const key in result) {
-          const date = dayjs(Number(key))
-          responseBody += `[${date.format("YYYY-MM-DD ddd")}] `;
-          const fromName = nameConverter(result[key].fromName);
-          const toName = nameConverter(result[key].toName);
-          const price = result[key].price;
-          const description = result[key].description;
-          const breakdown = ((x) => {
-            if (x === undefined) {
-              return ""
-            } else {
-              return `（内訳：${x}）`
-            }
-          })(description);
-          responseBody += `${fromName}から${toName}に${price}円渡してる．${breakdown}\n`
-        }
-
+    fetchHistory(Number(messages[1]))
+    .then((responseBody) => {        
+      res.send({
+        response_type: "in_channel",
+        text: responseBody
+      })})
+      .catch((e) => {
         res.send({
           response_type: "in_channel",
-          text: responseBody
+          text: e
         })
-      }),
-      ((err) => console.error(err)))
-
+      })
   } else if(messages[0] === "help"){
     res.send({
       response_type: "in_channel",
@@ -150,7 +122,7 @@ export const helloWorld = functions.https.onRequest((req, res) => {
     database.ref('history')
       .on('value', ((snapshot) => {
         const result = snapshot.val();
-        let accumulatePrice = {};
+        const accumulatePrice = {};
 
         Object.keys(result).forEach(key => accumulatePrice[nameConverter(result[key].fromName)] = 0);
 
