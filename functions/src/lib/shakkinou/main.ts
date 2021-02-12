@@ -1,18 +1,16 @@
-
 import { AccumulateItem, History, Shakkinou, ShakkinouConnector } from './types';
 
 
-// contextを知っているのはShakkinouAppだが、使っているのはShakkinouConnectorになる
-// テスタビリティを保ったままいい感じにしたい
 export class ShakkinouApp implements Shakkinou {
   constructor(private connector: ShakkinouConnector) {}
 
   showHistories = (historySize: number): Promise<History[]> => {
+    console.log(`6. ${historySize}`);
     return this.connector.fetchHistories().then((histories) => {
       if (historySize) {
-        return histories.sort((a, b) => (b.time - a.time)).slice(histories.length - historySize)
+        return histories.sort((a, b) => (a.time - b.time)).slice(histories.length - historySize)
       } else {
-        return histories.sort((a, b) => (b.time - a.time))
+        return histories.sort((a, b) => (a.time - b.time))
       }
     })
   }

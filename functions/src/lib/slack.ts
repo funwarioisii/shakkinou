@@ -47,7 +47,7 @@ export const shakkinouForSlack = (req: functions.Request, res: functions.Respons
           const {fromName, toName, price, description, time} = history;
           const dateHeader = `[${dayjs(Number(time)).format("YYYY-MM-DD ddd")}]`
           const breakdown = description ? `（内訳：${description}）` : ""
-          return acc + `${dateHeader} ${nameConverter(fromName)}から${nameConverter(toName)}に${price}円渡してる．${breakdown}\n`
+          return acc + `${dateHeader} ${nameConverter(fromName)}が${nameConverter(toName)}に${price}円貸してる${breakdown}\n`
         }, "");
 
         res.send({
@@ -68,12 +68,15 @@ export const shakkinouForSlack = (req: functions.Request, res: functions.Respons
   } else if (pattern === "record") {
     const fromName = nameConverter(messages[0]);
     const toName = nameConverter(messages[1]);
-    const history = {fromName, toName, price: Number(messages[2]), description: messages[3] || null} as History;
+    const time = Date.now();
+    console.log(messages)
+    const description = messages[3] ? messages[3] : ""
+    const history: History = {fromName, toName, time, description, price: Number(messages[2])};
     shakkinou.createHistory(history)
       .then((_) => {
         res.send({
           response_type: "in_channel",
-          text: "記録しました"
+          text: "記録しました！"
         })
       })
       .catch((e) => { res.send({ response_type: "in_channel", text: e }) })

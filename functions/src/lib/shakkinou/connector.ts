@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { Context } from 'vm';
+import { Context } from '../types';
 import { ShakkinouConnector, History } from './types';
 
 export class ShakkinouFirebaseConnector implements ShakkinouConnector {
@@ -31,11 +31,11 @@ export class ShakkinouFirebaseConnector implements ShakkinouConnector {
 
   createHistory = (history: History): Promise<boolean> => {
     const {token, product_name, db_name} = this.context;
-    const { fromName, toName, price } = history;
     const now = Date.now();
+    history.time = now;
     return this.database
       .ref(`${token}/${product_name}/${db_name}/${now}`)
-      .set({ time: now, fromName, toName, price })
+      .set(history)
       .then(() => true)
       .catch((err) => {console.error(err); return false;});
   }
