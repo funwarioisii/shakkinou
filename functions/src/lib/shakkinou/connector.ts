@@ -8,6 +8,8 @@ export class ShakkinouFirebaseConnector implements ShakkinouConnector {
 
   constructor(context: Context) {
     this.database = admin.database();
+    context.product_name = "shakkinou";
+    context.db_name = "history";
     this.context = context;
   }
 

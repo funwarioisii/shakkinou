@@ -9,7 +9,5 @@ admin.initializeApp(functions.config().firebase);
 
 exports.shakkinouSlack = functions.https.onRequest(shakkinouForSlack);
 exports.api =  functions.https.onRequest((req, res) => {
-  console.log(`1. ${req.query}`)
-  console.log(`1.1. ${req.url}`)
-  return api(req, res)
+  return api(req, res);
 });

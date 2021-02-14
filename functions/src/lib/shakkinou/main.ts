@@ -5,7 +5,6 @@ export class ShakkinouApp implements Shakkinou {
   constructor(private connector: ShakkinouConnector) {}
 
   showHistories = (historySize: number): Promise<History[]> => {
-    console.log(`6. ${historySize}`);
     return this.connector.fetchHistories().then((histories) => {
       if (historySize) {
         return histories.sort((a, b) => (a.time - b.time)).slice(histories.length - historySize)
@@ -32,7 +31,6 @@ export class ShakkinouApp implements Shakkinou {
           
           if (!accumulateItem) {
             const item: AccumulateItem = { fromName, toName, price } as const;
-            console.log(fromName, toName, cur.time)
             acc.push(item);
           } else {
             accumulateItem.price += price;

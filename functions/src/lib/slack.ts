@@ -58,7 +58,6 @@ export const shakkinouForSlack = (req: functions.Request, res: functions.Respons
   } else if (pattern === "sum") {
     shakkinou.accumulate()
       .then((items) => {
-        items.forEach((item) => console.log(item));
         const replyMessage = items.reduce((message, item) => message + `${item.fromName}から${item.toName}へ${item.price}円貸してる\n`, '')
         res.send({
           response_type: "in_channel",
@@ -69,7 +68,6 @@ export const shakkinouForSlack = (req: functions.Request, res: functions.Respons
     const fromName = nameConverter(messages[0]);
     const toName = nameConverter(messages[1]);
     const time = Date.now();
-    console.log(messages)
     const description = messages[3] ? messages[3] : ""
     const history: History = {fromName, toName, time, description, price: Number(messages[2])};
     shakkinou.createHistory(history)

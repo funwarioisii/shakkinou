@@ -7,6 +7,7 @@ import { Splatoon2BattleLoggerApp } from './splatoon2BattleLogger/main';
 import { ShakkinouFirebaseConnector } from './shakkinou/connector';
 import { ShakkinouApp } from './shakkinou/main';
 import { Splatoon2BattleLog } from './splatoon2BattleLogger/types';
+import { History } from './shakkinou/types';
 
 const api = express()
 
@@ -14,10 +15,8 @@ api.use(cors({ origin: true }));
 api.use(express.json());
 api.use(express.urlencoded({ extended: true }));
 
-api.get('/shakkinou/:historySize', (req, res) => {
-  console.log(`2. ${req.query}`)
+api.get('/shakkinou', (req, res) => {
   if (!req.query || !req.query.token) throw Error('should set token')
-  console.log(`3. ${req.query.token} ${Number(req.query.historySize)}`)
   const token = req.query.token;
   const historySize = Number(req.query.historySize);
   const context = {token, product_name: "shakkinou", db_name: "history"} as Context;
@@ -27,8 +26,20 @@ api.get('/shakkinou/:historySize', (req, res) => {
   shakkinou
     .showHistories(historySize)
     .then((histories) => { res.json(histories); })
-    .catch((e) => console.log(e))
-})
+    .catch((e) => console.error(e))
+});
+
+api.post('/shakkinou', (req, res) => {
+  if (!req.query || !req.query.token) throw Error('should set token')
+  const token = req.query.token;
+  const history: History = req.body
+  const context: Context = { token, product_name: "shakkinou", db_name: 'history'};
+  const shakkinou = new ShakkinouApp(new ShakkinouFirebaseConnector(context))  
+  shakkinou
+    .createHistory(history)
+    .then((logs) => { res.json(logs) })
+    .catch((e) => console.error(e))
+});
 
 api.get('/splatoon2BattleLoggerApp', (req, res) => {
   if (!req.query || !req.query.token) throw Error('should set token')
